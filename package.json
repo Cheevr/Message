@@ -27,9 +27,10 @@
     "express": "^4",
     "istanbul": "^0.4",
     "mocha": "^3",
-    "nock": "^9.0.2"
+    "nock": "^9"
   },
   "dependencies": {
+    "amqplib": "^0.5",
     "cheevr-config": "https://github.com/Cheevr/Config.git",
     "cheevr-logging": "https://github.com/Cheevr/Logging.git"
   }

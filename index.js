@@ -1,12 +1,22 @@
 const config = require('cheevr-config');
-const EventEmitter = require('event').EventEmitter;
-const Instance = require('./instance');
+const path = require('path');
+config.addDefaultConfig(path.join(__dirname, 'config'));
+const EventEmitter = require('events').EventEmitter;
 const Logger = require('cheevr-logging');
+
+/**
+ * The standard callback definition that can be used anywhere where standards are followed.
+ * @typedef {function} Callback
+ * @param {Error|string} [err]  Will contain error information if there's has been one
+ * @param {*} [...args]
+ */
 
 
 class Manager extends EventEmitter {
     constructor() {
         super();
+        this._log = Logger[config.queue._default_.logger];
+        this._instances = {};
     }
 
     /**
@@ -28,7 +38,7 @@ class Manager extends EventEmitter {
      * @param {string} [instance=_default_] Server instance name to look for queue
      */
     receive(queue, msg, cb, instance) {
-        this.get(queue, host).receive(msg, cb);
+        this.get(queue, instance).receive(msg, cb);
     }
 
     /**
@@ -38,7 +48,7 @@ class Manager extends EventEmitter {
      * @param {string} [instance=_default_] Server instance name to look for queue
      */
     listen(queue, cb, instance) {
-        this.get(queue, host``).listen(cb);
+        this.get(queue, instance).listen(cb);
     }
 
     /**
@@ -47,6 +57,9 @@ class Manager extends EventEmitter {
      * @param {string} [instance=_default_] The name name of the message queue instance
      */
     get(queue, instance = '_default_') {
+        let opts = config.queue[instance];
+        this._instances[instance] = this._instances[instance] || new require('./' + opts.type)(opts);
+        this._instances[instance].on('error', err => this.emit('error', err));
         // TODO create server instance and queues if they don't already exist
         // TODO get the host for this queue OR throw error if it doesn't exist
         // TODO return the queue object OR create it if doesn't exists yet based on configuration values/defaults
@@ -64,3 +77,5 @@ class Manager extends EventEmitter {
         next();
     }
 }
+
+module.exports = new Manager();
