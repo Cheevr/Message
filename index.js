@@ -1,6 +1,4 @@
-const config = require('cheevr-config');
-const path = require('path');
-config.addDefaultConfig(path.join(__dirname, 'config'));
+const config = require('cheevr-config').addDefaultConfig(__dirname, 'config');
 const EventEmitter = require('events').EventEmitter;
 const Logger = require('cheevr-logging');
 
@@ -58,10 +56,12 @@ class Manager extends EventEmitter {
      */
     get(queue, instance = '_default_') {
         let opts = config.queue[instance];
+        if (!opts) {
+            // TODO Maybe allow just using the default config
+            throw new Error('Trying to connect to an unknown host');
+        }
         this._instances[instance] = this._instances[instance] || new require('./' + opts.type)(opts);
         this._instances[instance].on('error', err => this.emit('error', err));
-        // TODO create server instance and queues if they don't already exist
-        // TODO get the host for this queue OR throw error if it doesn't exist
         // TODO return the queue object OR create it if doesn't exists yet based on configuration values/defaults
     }
 
