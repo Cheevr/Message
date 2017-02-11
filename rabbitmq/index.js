@@ -4,10 +4,10 @@ const EventEmitter = require('events').EventEmitter;
 const Logging = require('cheevr-logging');
 
 
-class RabbitMQ extends EventEmitter {
+class Instance extends EventEmitter {
     constructor(config) {
         super();
-        this._queues = {};
+        this._channels = {};
         this._config = config;
         this._host = config.client.host;
         this._log = Logging[config.logger];
@@ -16,10 +16,11 @@ class RabbitMQ extends EventEmitter {
     }
 
     /**
-     * Will connect to a message server instance and establish all queues.
+     * Will connect to a message server instance and establish all channels.
      * @param {Callback} [cb]
      */
     connect(cb) {
+        // TODO allow to specify multiple hosts that we attempt to connect to
         let clientConf = this._config.client;
         let url = 'amqp://';
         url += clientConf.user + ':' + encodeURIComponent(clientConf.pass);
@@ -54,7 +55,7 @@ class RabbitMQ extends EventEmitter {
             this._connection.close(() => {
                 this._log.debug('Closed connection to messaging server', this._host);
                 delete this._connection;
-                this._queues = {};
+                this._channels = {};
                 this.emit('disconnected', this);
                 cb && cb();
             });
@@ -64,22 +65,32 @@ class RabbitMQ extends EventEmitter {
     }
 
     /**
-     * Will read the config and create all channels/queues on this server.
+     * Will read the config and create all channels on this server.
      * @private
      */
     _setUp() {
-        let defaultConf = this._config.queues._default_;
-        if (this._config.queues) {
-            for (let name in this._config.queues) {
+        let defaultConf = this._config.channels._default_;
+        if (this._config.channels) {
+            for (let name in this._config.channels) {
                 if (name == '_default_') {
                     continue;
                 }
-                let queueConfig = Object.assign({}, defaultConf, this._config.queues[name]);
-                let channel = this._queues[name] = new Channel(queueConfig, this);
+                let channelConfig = Object.assign({}, defaultConf, this._config.channels[name]);
+                let channel = this._channels[name] = new Channel(channelConfig, this);
                 channel.on('error', err => this.emit('error', err));
             }
         }
     }
+
+    /**
+     * Returns the channel object on which you can send/receive or listen for events
+     * @param name
+     * @return {Channel}
+     */
+    channel(name) {
+        // TODO if channel doesn't exist create it?
+        return this._channels[name];
+    }
 }
 
-module.exports = RabbitMQ;
+module.exports = Instance;

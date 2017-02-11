@@ -19,62 +19,83 @@ class Manager extends EventEmitter {
 
     /**
      * Send a message to a queue on the default server instance.
-     * @param {string} queue                The name of the queue to operate on
+     * @param {string} channel                The name of the queue to operate on
      * @param {Object|String|Buffer} msg    The message to put on the queue
      * @param {function} cb                 Callback that will receive err/response
      * @param {string} [instance=_default_] Server instance name to look for queue
      */
-    send(queue, msg, cb, instance) {
-        this.get(queue, instance).send(msg, cb);
+    send(channel, msg, cb, instance) {
+        this.get(channel, instance).send(msg, cb);
     }
 
     /**
      * Receive a message from a queue on the default server instance.
-     * @param {string} queue                The name of the queue to operate on
+     * @param {string} channel                The name of the queue to operate on
      * @param {Object|String|Buffer} msg    The message to put on the queue
      * @param {function} cb                 Callback that will receive err/response
      * @param {string} [instance=_default_] Server instance name to look for queue
      */
-    receive(queue, msg, cb, instance) {
-        this.get(queue, instance).receive(msg, cb);
+    receive(channel, msg, cb, instance) {
+        this.get(channel, instance).receive(msg, cb);
     }
 
     /**
      * Listen for messages on a queue on the default server instance.
-     * @param {string} queue                The name of the queue to operate on
+     * @param {string} channel                The name of the queue to operate on
      * @param {function} cb                 Callback that will receive err/response
      * @param {string} [instance=_default_] Server instance name to look for queue
      */
-    listen(queue, cb, instance) {
-        this.get(queue, instance).listen(cb);
+    listen(channel, cb, instance) {
+        this.get(channel, instance).listen(cb);
     }
 
     /**
-     * Returns a queue object that you can send, receive or listen for messages on.
-     * @param {string} queue                The name of the queue you want to operate on
-     * @param {string} [instance=_default_] The name name of the message queue instance
+     * Returns the instance object that holds information about all the channels it has.
+     * @param {string} name The name of instance to return.
+     * @returns {Instance}
      */
-    get(queue, instance = '_default_') {
-        let opts = config.queue[instance];
+    instance(name = '_default_') {
+        let opts = config.queue[name];
         if (!opts) {
-            // TODO Maybe allow just using the default config
-            throw new Error('Trying to connect to an unknown host');
+            throw new Error('Missing configuration for message queue server named ' + name);
         }
-        this._instances[instance] = this._instances[instance] || new require('./' + opts.type)(opts);
-        this._instances[instance].on('error', err => this.emit('error', err));
-        // TODO return the queue object OR create it if doesn't exists yet based on configuration values/defaults
+        name != '_default_' && (opts = Object.assign({}, config.queue._default_, opts || {}));
+        this._instances[name] = this._instances[name] || new (require('./' + opts.type))(opts);
+        this._instances[name].on('error', err => this.emit('error', err));
+        return this._instances[name];
+    }
+
+    /**
+     * Returns a channel object that you can send, receive or listen for messages on.
+     * @param {string} name                The name of the channel you want to operate on
+     * @param {string} [instanceName=_default_] The name name of the message queue instance
+     * @returns {Channel}
+     */
+    channel(name, instanceName = '_default_') {
+        return this.instance(instanceName).channel(name);
     }
 
     /**
      * Middleware function that will add an .mq property on the request that gives access to the message queue system.
-     * @param {ClientRequest} req
-     * @param {ServerResponse} res
-     * @param {function} next
+     * @returns {function}  The middleware function that can be used by any standard express format web server.
      */
-    middleware(req, res, next) {
-        // TODO go through all configured server instances and make them on the request object available under req.mq
-        // TODO make the default instance available
-        next();
+    middleware() {
+        let defaultInstance;
+        for (let instanceName in config.queue) {
+            if (config.queue[instanceName.default]) {
+                defaultInstance = this.instance(instanceName)
+            }
+        }
+        defaultInstance = defaultInstance || this.instance();
+        for (let instanceName in config.queue) {
+            if (config.queue[instanceName.default]) {
+                defaultInstance[instanceName] = this.instance(instanceName)
+            }
+        }
+        return (req, res, next) => {
+            req.mq = defaultInstance;
+            next();
+        }
     }
 }
 

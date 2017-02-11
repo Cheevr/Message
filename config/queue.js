@@ -9,7 +9,7 @@ module.exports = {
             pass: 'ChangeMe!!!',
             heartbeat: 30
         },
-        queues: {
+        channels: {
             _default_: {
                 queue: {
                     autoDelete: true,
