@@ -96,6 +96,7 @@ class Instance extends EventEmitter {
      * @return {Channel}
      */
     channel(name) {
+        // TODO the name should include the application as a prefix
         if (!this._channels[name]) {
             let channelConfig = Object.assign({}, this._config.channels._default_, this._config.channels[name]);
             this._channels[name] = new Channel(name, this, channelConfig);

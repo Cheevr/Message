@@ -56,8 +56,8 @@ class Manager extends EventEmitter {
     middleware() {
         let defaultInstance;
         for (let instanceName in config.queue) {
-            if (config.queue[instanceName.default]) {
-                defaultInstance = this.instance(instanceName)
+            if (config.queue[instanceName.default] || !defaultInstance) {
+                defaultInstance = this.instance(instanceName);
             }
         }
         if (defaultInstance) {
