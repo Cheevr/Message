@@ -3,8 +3,38 @@ const Channel = require('./channel');
 const EventEmitter = require('events').EventEmitter;
 const Logging = require('cheevr-logging');
 
+/**
+ * @typedef {object} RabbitInstanceConfig
+ * @property {string} type
+ * @property {string} appId
+ * @property {string} logger
+ * @property {RabbitClientConfig} client
+ * @property {Object<string, RabbitChannelConfig>} channels
+ */
+
+/**
+ * This is the configuration object for a RabbitMQ client
+ * @typedef {object} RabbitClientConfig
+ * @property {string} host      The host dns or ip to connect to
+ * @property {string} user      Username for the user on RabbitMQ instance
+ * @property {string} pass      Password for the user on RabbitMQ instance
+ * @property {number} heartbeat Interval for how often connection to server should be checked
+ */
+
+/**
+ * @typedef {object} RabbitChannelConfig
+ * @property {object} queue             Options for setting up a queue (for more options see
+ *                                      http://www.squaremobius.net/amqp.node/channel_api.html#channel_assertQueue)
+ * @property {object} message           Options when sending messages to a queue (for more options see
+ *                                      http://www.squaremobius.net/amqp.node/channel_api.html#channel_publish)
+ */
+
 
 class Instance extends EventEmitter {
+    /**
+     *
+     * @param {RabbitInstanceConfig} config
+     */
     constructor(config) {
         super();
         this._channels = {};
