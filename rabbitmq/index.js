@@ -76,10 +76,18 @@ class Instance extends EventEmitter {
                     continue;
                 }
                 let channelConfig = Object.assign({}, defaultConf, this._config.channels[name]);
-                let channel = this._channels[name] = new Channel(channelConfig, this);
+                let channel = this._channels[name] = new Channel(name, this, channelConfig);
                 channel.on('error', err => this.emit('error', err));
             }
         }
+    }
+
+    get connection() {
+        return this._connection;
+    }
+
+    get name() {
+        return this._host;
     }
 
     /**
@@ -88,7 +96,10 @@ class Instance extends EventEmitter {
      * @return {Channel}
      */
     channel(name) {
-        // TODO if channel doesn't exist create it?
+        if (!this._channels[name]) {
+            let channelConfig = Object.assign({}, this._config.channels._default_, this._config.channels[name]);
+            this._channels[name] = new Channel(name, this, channelConfig);
+        }
         return this._channels[name];
     }
 }

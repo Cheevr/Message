@@ -33,6 +33,7 @@
   "dependencies": {
     "amqplib": "^0.5",
     "cheevr-config": "https://github.com/Cheevr/Config.git",
-    "cheevr-logging": "https://github.com/Cheevr/Logging.git"
+    "cheevr-logging": "https://github.com/Cheevr/Logging.git",
+    "shortid": "^2"
   }
 }

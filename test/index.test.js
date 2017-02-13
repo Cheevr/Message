@@ -10,12 +10,11 @@ describe('Message', () => {
     });
 
     describe('Middleware', () => {
-        it('should create at least one default instance', done => {
+        it('shouldn\'t create a default instance if nothing is configured', done => {
             let req = {};
             let res = {};
-            MQ.middleware(req, res, () => {
-                expect(req.mq).itself.respondsTo('send');
-                expect(req.mq).itself.respondsTo('receive');
+            MQ.middleware()(req, res, () => {
+                expect(req.mq).to.be.undefined;
                 done();
             });
         });

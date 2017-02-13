@@ -13,40 +13,14 @@ const Logger = require('cheevr-logging');
 class Manager extends EventEmitter {
     constructor() {
         super();
-        this._log = Logger[config.queue._default_.logger];
         this._instances = {};
+        this._config = config.queue;
+        this.configure(config.queue);
     }
 
-    /**
-     * Send a message to a queue on the default server instance.
-     * @param {string} channel                The name of the queue to operate on
-     * @param {Object|String|Buffer} msg    The message to put on the queue
-     * @param {function} cb                 Callback that will receive err/response
-     * @param {string} [instance=_default_] Server instance name to look for queue
-     */
-    send(channel, msg, cb, instance) {
-        this.get(channel, instance).send(msg, cb);
-    }
-
-    /**
-     * Receive a message from a queue on the default server instance.
-     * @param {string} channel                The name of the queue to operate on
-     * @param {Object|String|Buffer} msg    The message to put on the queue
-     * @param {function} cb                 Callback that will receive err/response
-     * @param {string} [instance=_default_] Server instance name to look for queue
-     */
-    receive(channel, msg, cb, instance) {
-        this.get(channel, instance).receive(msg, cb);
-    }
-
-    /**
-     * Listen for messages on a queue on the default server instance.
-     * @param {string} channel                The name of the queue to operate on
-     * @param {function} cb                 Callback that will receive err/response
-     * @param {string} [instance=_default_] Server instance name to look for queue
-     */
-    listen(channel, cb, instance) {
-        this.get(channel, instance).listen(cb);
+    configure(config, merge) {
+        merge && Object.assign(this._config, config);
+        this._log = Logger[this._config._default_.logger];
     }
 
     /**
@@ -86,16 +60,49 @@ class Manager extends EventEmitter {
                 defaultInstance = this.instance(instanceName)
             }
         }
-        defaultInstance = defaultInstance || this.instance();
-        for (let instanceName in config.queue) {
-            if (config.queue[instanceName.default]) {
-                defaultInstance[instanceName] = this.instance(instanceName)
+        if (defaultInstance) {
+            for (let instanceName in config.queue) {
+                if (config.queue[instanceName.default]) {
+                    defaultInstance[instanceName] = this.instance(instanceName)
+                }
             }
         }
         return (req, res, next) => {
             req.mq = defaultInstance;
             next();
         }
+    }
+
+    /**
+     * Send a message to a queue on the default server instance.
+     * @param {string} channel                The name of the queue to operate on
+     * @param {Object|String|Buffer} msg    The message to put on the queue
+     * @param {function} cb                 Callback that will receive err/response
+     * @param {string} [instance=_default_] Server instance name to look for queue
+     */
+    send(channel, msg, cb, instance) {
+        this.get(channel, instance).send(msg, cb);
+    }
+
+    /**
+     * Receive a message from a queue on the default server instance.
+     * @param {string} channel                The name of the queue to operate on
+     * @param {Object|String|Buffer} msg    The message to put on the queue
+     * @param {function} cb                 Callback that will receive err/response
+     * @param {string} [instance=_default_] Server instance name to look for queue
+     */
+    receive(channel, msg, cb, instance) {
+        this.get(channel, instance).receive(msg, cb);
+    }
+
+    /**
+     * Listen for messages on a queue on the default server instance.
+     * @param {string} channel                The name of the queue to operate on
+     * @param {function} cb                 Callback that will receive err/response
+     * @param {string} [instance=_default_] Server instance name to look for queue
+     */
+    listen(channel, cb, instance) {
+        this.get(channel, instance).listen(cb);
     }
 }
 

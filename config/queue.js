@@ -12,7 +12,6 @@ module.exports = {
         channels: {
             _default_: {
                 queue: {
-                    autoDelete: true,
                     durable: true,
                     messageTtl: 24 * 60 * 60 * 1000 // 24h
                 },
