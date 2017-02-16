@@ -10,6 +10,40 @@ const Logger = require('cheevr-logging');
  */
 
 
+/**
+ * This event is fired whenever a connection to the RabbitMQ server has been established
+ * @event Instance#connected
+ * @param {Instance} instance   The instance that emitted the event
+ */
+
+/**
+ * This event is fired whenever a connection to the RabbitMQ server is lost
+ * @event Instance#disconnected
+ * @param {Instance} instance   The instance that emitted the event
+ */
+
+/**
+ * This event is fired whenever a connection to the RabbitMQ server is interrupted (as in unexpectedly disconnected)
+ * @event Instance#interrupted
+ * @param {Instance} instance   The instance that emitted the event
+ */
+
+/**
+ * This event is fired whenever a connection to the RabbitMQ server has been established after it has been lost
+ * through an interrupt.
+ * @event Instance#reconnected
+ * @param {Instance} instance   The instance that emitted the event
+ */
+
+/**
+ * Whenever this host or one of the channels emits an error it will emitted as an error
+ * @event Instance#error
+ * @param {Error|string}        The error that occurred
+ * @param {Instance} instance   The instance that emitted the event
+ * @param {Channel} [channel]   If the error was emitted from the channel this is the instance that emitted it
+ */
+
+
 class Manager extends EventEmitter {
     constructor() {
         super();
@@ -34,7 +68,7 @@ class Manager extends EventEmitter {
             throw new Error('Missing configuration for message queue server named ' + name);
         }
         name != '_default_' && (opts = Object.assign({}, config.queue._default_, opts || {}));
-        this._instances[name] = this._instances[name] || new (require('./' + opts.type))(opts);
+        this._instances[name] = this._instances[name] || new (require('./' + opts.type))(name, opts);
         this._instances[name].on('error', err => this.emit('error', err));
         return this._instances[name];
     }
