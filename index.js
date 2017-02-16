@@ -1,12 +1,17 @@
 const config = require('cheevr-config').addDefaultConfig(__dirname, 'config');
 const EventEmitter = require('events').EventEmitter;
-const Logger = require('cheevr-logging');
 
 /**
  * The standard callback definition that can be used anywhere where standards are followed.
  * @typedef {function} Callback
  * @param {Error|string} [err]  Will contain error information if there's has been one
  * @param {*} [...args]
+ */
+
+/**
+ * The generic instance configuration that will be implemented by the individual instance implementations
+ * @typedef {object} InstanceConfig
+ * @abstract
  */
 
 
@@ -52,9 +57,13 @@ class Manager extends EventEmitter {
         this.configure(config.queue);
     }
 
+    /**
+     * Set the configuration for the message queues manually.
+     * @param {Object<string, InstanceConfig>} config   A map with names pointing to instance configuration
+     * @param {boolean} [merge=false]                   Whether to merge the given config with the current one.
+     */
     configure(config, merge) {
-        merge && Object.assign(this._config, config);
-        this._log = Logger[this._config._default_.logger];
+        merge ? Object.assign(this._config, config) : this._config = config;
     }
 
     /**
@@ -75,7 +84,7 @@ class Manager extends EventEmitter {
 
     /**
      * Returns a channel object that you can send, receive or listen for messages on.
-     * @param {string} name                The name of the channel you want to operate on
+     * @param {string} name                     The name of the channel you want to operate on
      * @param {string} [instanceName=_default_] The name name of the message queue instance
      * @returns {Channel}
      */
@@ -85,20 +94,20 @@ class Manager extends EventEmitter {
 
     /**
      * Middleware function that will add an .mq property on the request that gives access to the message queue system.
+     * The default message queue will be made available right on the .mq object, others will be reachable through their
+     * name on .mq.<queueName>. Should there be no default queue defined, the first one found will be used as default.
      * @returns {function}  The middleware function that can be used by any standard express format web server.
      */
     middleware() {
         let defaultInstance;
         for (let instanceName in config.queue) {
-            if (config.queue[instanceName.default] || !defaultInstance) {
+            if (instanceName != '_default_' && (config.queue[instanceName.default] || !defaultInstance)) {
                 defaultInstance = this.instance(instanceName);
             }
         }
         if (defaultInstance) {
             for (let instanceName in config.queue) {
-                if (config.queue[instanceName.default]) {
-                    defaultInstance[instanceName] = this.instance(instanceName)
-                }
+                defaultInstance[instanceName] = this.instance(instanceName)
             }
         }
         return (req, res, next) => {
@@ -109,34 +118,58 @@ class Manager extends EventEmitter {
 
     /**
      * Send a message to a queue on the default server instance.
-     * @param {string} channel                The name of the queue to operate on
+     * @param {string} channel              The name of the queue to operate on
+     * @param {string} [instance=_default_] Server instance name to look for queue
      * @param {Object|String|Buffer} msg    The message to put on the queue
      * @param {function} cb                 Callback that will receive err/response
-     * @param {string} [instance=_default_] Server instance name to look for queue
      */
-    send(channel, msg, cb, instance) {
-        this.get(channel, instance).send(msg, cb);
+    send(channel, instance, msg, cb) {
+        if (instance instanceof String) {
+            cb = msg;
+            msg = instance;
+            instance = '_default_';
+        }
+        this.channel(channel, instance).send(msg, cb);
     }
 
     /**
      * Receive a message from a queue on the default server instance.
-     * @param {string} channel                The name of the queue to operate on
-     * @param {Object|String|Buffer} msg    The message to put on the queue
-     * @param {function} cb                 Callback that will receive err/response
+     * @param {string} channel              The name of the queue to operate on
      * @param {string} [instance=_default_] Server instance name to look for queue
+     * @param {boolean} [noAck=false]       Whether the server should expect an acknowledgement from the client or not
+     * @param {function} cb                 Callback that will receive err/response
      */
-    receive(channel, msg, cb, instance) {
-        this.get(channel, instance).receive(msg, cb);
+    receive(channel, instance, noAck, cb) {
+        if (typeof instance != 'string') {
+            cb = noAck;
+            noAck = instance;
+            instance = '_default_';
+        }
+        if (typeof noAck != 'boolean') {
+            cb = noAck;
+            noAck = false;
+        }
+        this.channel(channel, instance).receive(noAck, cb);
     }
 
     /**
      * Listen for messages on a queue on the default server instance.
-     * @param {string} channel                The name of the queue to operate on
-     * @param {function} cb                 Callback that will receive err/response
+     * @param {string} channel              The name of the queue to operate on
      * @param {string} [instance=_default_] Server instance name to look for queue
+     * @param {boolean} [noAck=false]       Whether the server should expect an acknowledgement from the client or not
+     * @param {function} cb                 Callback that will receive err/response
      */
-    listen(channel, cb, instance) {
-        this.get(channel, instance).listen(cb);
+    listen(channel, instance, noAck, cb) {
+        if (typeof instance != 'string') {
+            cb = noAck;
+            noAck = instance;
+            instance = '_default_';
+        }
+        if (typeof noAck != 'boolean') {
+            cb = noAck;
+            noAck = false;
+        }
+        this.channel(channel, instance).listen(noAck, cb);
     }
 }
 

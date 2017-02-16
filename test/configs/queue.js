@@ -1,7 +1,8 @@
 module.exports = {
-    test: {
+    testInstance: {
         appId: 'test',
         channels: {
+            testChannel: {}
         }
     }
 };
