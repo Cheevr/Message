@@ -113,7 +113,9 @@ class Channel extends EventEmitter {
             }
             this._cache.store(this.name, { id, listener: cb, noAck });
             this._channel.consume(this._name, msg => {
-                cb && cb(null, JSON.parse(msg.toString('utf8')));
+                cb && cb(null, JSON.parse(msg.content.toString('utf8')), ( ack = true ) => {
+                    noAck || (ack ? this._channel.ack(msg) : this._channel.nack(msg));
+                });
             }, { consumerTag:id, noAck });
         });
     }
@@ -134,7 +136,9 @@ class Channel extends EventEmitter {
             this._channel.consume(name, msg => {
                 this._cache.remove(this.name, id);
                 this._channel.cancel(id);
-                cb && cb(null, JSON.parse(msg.toString('utf8')));
+                cb && cb(null, JSON.parse(msg.content.toString('utf8')), ( ack = true ) => {
+                    noAck || (ack ? this._channel.ack(msg) : this._channel.nack(msg));
+                });
             }, { consumerTag: id, noAck });
         });
     }

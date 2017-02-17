@@ -89,7 +89,7 @@ class Manager extends EventEmitter {
      * @param {string} [instanceName=_default_] The name name of the message queue instance
      * @returns {Channel}
      */
-    channel(name, instanceName = '_default_') {
+    queue(name, instanceName = '_default_') {
         return this.instance(instanceName).channel(name);
     }
 
@@ -132,28 +132,28 @@ class Manager extends EventEmitter {
 
     /**
      * Send a message to a queue on the default server instance.
-     * @param {string} channel              The name of the queue to operate on
+     * @param {string} queue              The name of the queue to operate on
      * @param {string} [instance=_default_] Server instance name to look for queue
      * @param {Object|String|Buffer} msg    The message to put on the queue
      * @param {function} cb                 Callback that will receive err/response
      */
-    send(channel, instance, msg, cb) {
+    send(queue, instance, msg, cb) {
         if (instance instanceof String) {
             cb = msg;
             msg = instance;
             instance = '_default_';
         }
-        this.channel(channel, instance).send(msg, cb);
+        this.queue(queue, instance).send(msg, cb);
     }
 
     /**
      * Receive a message from a queue on the default server instance.
-     * @param {string} channel              The name of the queue to operate on
+     * @param {string} queue              The name of the queue to operate on
      * @param {string} [instance=_default_] Server instance name to look for queue
      * @param {boolean} [noAck=false]       Whether the server should expect an acknowledgement from the client or not
      * @param {function} cb                 Callback that will receive err/response
      */
-    receive(channel, instance, noAck, cb) {
+    receive(queue, instance, noAck, cb) {
         if (typeof instance != 'string') {
             cb = noAck;
             noAck = instance;
@@ -163,17 +163,17 @@ class Manager extends EventEmitter {
             cb = noAck;
             noAck = false;
         }
-        this.channel(channel, instance).receive(noAck, cb);
+        this.queue(queue, instance).receive(noAck, cb);
     }
 
     /**
      * Listen for messages on a queue on the default server instance.
-     * @param {string} channel              The name of the queue to operate on
+     * @param {string} queue              The name of the queue to operate on
      * @param {string} [instance=_default_] Server instance name to look for queue
      * @param {boolean} [noAck=false]       Whether the server should expect an acknowledgement from the client or not
      * @param {function} cb                 Callback that will receive err/response
      */
-    listen(channel, instance, noAck, cb) {
+    listen(queue, instance, noAck, cb) {
         if (typeof instance != 'string') {
             cb = noAck;
             noAck = instance;
@@ -183,7 +183,7 @@ class Manager extends EventEmitter {
             cb = noAck;
             noAck = false;
         }
-        this.channel(channel, instance).listen(noAck, cb);
+        this.queue(queue, instance).listen(noAck, cb);
     }
 }
 
