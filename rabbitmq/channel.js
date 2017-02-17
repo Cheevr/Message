@@ -15,7 +15,6 @@ class Channel extends EventEmitter {
         this._host = host;
         this._log = host._log;
         this._cache = Cache.get(config.cache);
-        this.on('error', err => host.emit('error', err));
         this._host.on('reconnected', () => {
             let entries = this._cache.get(this.name);
             for (let entry of entries) {

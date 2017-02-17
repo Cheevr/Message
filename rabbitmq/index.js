@@ -137,6 +137,18 @@ class Instance extends EventEmitter {
         return this._name;
     }
 
+    get ready() {
+        if (!this._connection) {
+            return false;
+        }
+        for (let name in this._channels) {
+            if (!this._channels[name].ready) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Returns the channel object on which you can send/receive or listen for events
      * @param name

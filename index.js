@@ -93,6 +93,19 @@ class Manager extends EventEmitter {
     }
 
     /**
+     * Checks each instance and channel if they are connected.
+     * @returns {boolean}
+     */
+    ready() {
+        for (let name in this._instances) {
+            if (!this._instances[name].ready) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Middleware function that will add an .mq property on the request that gives access to the message queue system.
      * The default message queue will be made available right on the .mq object, others will be reachable through their
      * name on .mq.<queueName>. Should there be no default queue defined, the first one found will be used as default.
