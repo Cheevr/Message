@@ -6,11 +6,10 @@ const Logging = require('cheevr-logging');
 /**
  * @typedef {object} RabbitInstanceConfig
  * @extends InstanceConfig
- * @property {string} type
- * @property {string} appId
- * @property {string} logger
- * @property {RabbitClientConfig} client
- * @property {Object<string, RabbitChannelConfig>} channels
+ * @property {string} appId                                 The appId with which to identify this application in queue names
+ * @property {string} logger                                The name of the logger to use
+ * @property {RabbitClientConfig} client                    The client configuration object
+ * @property {Object<string, RabbitChannelConfig>} channels A map with channel configurations
  */
 
 /**
@@ -24,10 +23,11 @@ const Logging = require('cheevr-logging');
 
 /**
  * @typedef {object} RabbitChannelConfig
- * @property {object} queue             Options for setting up a queue (for more options see
- *                                      http://www.squaremobius.net/amqp.node/channel_api.html#channel_assertQueue)
- * @property {object} message           Options when sending messages to a queue (for more options see
- *                                      http://www.squaremobius.net/amqp.node/channel_api.html#channel_publish)
+ * @property {CacheConfig} cache    The configuration object for the cache to use with this channel
+ * @property {object} queue         Options for setting up a queue (for more options see
+ *                                  http://www.squaremobius.net/amqp.node/channel_api.html#channel_assertQueue)
+ * @property {object} message       Options when sending messages to a queue (for more options see
+ *                                  http://www.squaremobius.net/amqp.node/channel_api.html#channel_publish)
  */
 
 

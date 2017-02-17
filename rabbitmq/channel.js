@@ -14,15 +14,17 @@ class Channel extends EventEmitter {
         this._config = config;
         this._host = host;
         this._log = host._log;
-        this._cache = Cache.get(config.cache);
+        this._cache = Cache.get(config.cache, this._log);
         this._host.on('reconnected', () => {
-            let entries = this._cache.get(this.name);
-            for (let entry of entries) {
-                this._cache.removeListener(entry);
-                entry.listener && this.listen(entry.noAck, entry.listener, entry.id);
-                entry.receiver && this.receive(entry.noAck, entry.receiver, entry.id);
-                entry.payload && this.send(entry.payload, entry.callback, entry.id);
-            }
+            this._cache.get(this.name, (err, entries) => {
+                err && this._log.error('Unable to restore cached messages for channel %s:', this.name, err);
+                for (let entry of entries) {
+                    this._cache.remove(entry);
+                    entry.listener && this.listen(entry.noAck, entry.listener, entry.id);
+                    entry.receiver && this.receive(entry.noAck, entry.receiver, entry.id);
+                    entry.payload && this.send(entry.payload, entry.callback, entry.id);
+                }
+            });
         });
         this._setUp();
     }
@@ -60,10 +62,14 @@ class Channel extends EventEmitter {
         });
     }
 
+    /**
+     * Close this channel and remove all listeners. Once destroyed the channel can no longer be used.
+     */
     destroy() {
         this._channel.deleteQueue(this.name, err => {
             err && this._log.warn('There was an error trying to delete queue %s', this.name, err);
             this._channel.removeAllListeners();
+            this._cache.clear();
             delete this._channel;
         });
     }

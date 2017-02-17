@@ -11,6 +11,7 @@ const EventEmitter = require('events').EventEmitter;
 /**
  * The generic instance configuration that will be implemented by the individual instance implementations
  * @typedef {object} InstanceConfig
+ * @property {string} type  The type of message service to use
  * @abstract
  */
 

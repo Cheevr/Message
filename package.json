@@ -22,6 +22,10 @@
     "test": "istanbul cover _mocha -- --recursive",
     "test-travis": "istanbul cover _mocha --report lcovonly -- -R spec --recursive"
   },
+  "optionalDependencies": {
+    "cheevr-database": "https://github.com/Cheevr/Database.git",
+    "aws-sdk": "^2"
+  },
   "devDependencies": {
     "chai": "^3",
     "coveralls": "^2",
@@ -32,6 +36,7 @@
   },
   "dependencies": {
     "amqplib": "^0.5",
+    "async": "^2",
     "cheevr-config": "https://github.com/Cheevr/Config.git",
     "cheevr-logging": "https://github.com/Cheevr/Logging.git",
     "shortid": "^2"
