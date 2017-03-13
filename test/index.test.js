@@ -1,6 +1,5 @@
 /* globals describe, it, after, before, afterEach, beforeEach */
 const expect = require('chai').expect;
-const nock = require('nock');
 
 
 const MQ = require('../');

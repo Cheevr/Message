@@ -31,8 +31,7 @@
     "coveralls": "^2",
     "express": "^4",
     "istanbul": "^0.4",
-    "mocha": "^3",
-    "nock": "^9"
+    "mocha": "^3"
   },
   "dependencies": {
     "amqplib": "^0.5",
