@@ -137,6 +137,10 @@ class Instance extends EventEmitter {
         return this._name;
     }
 
+    get config() {
+        return this._config;
+    }
+
     get ready() {
         if (!this._connection) {
             return false;

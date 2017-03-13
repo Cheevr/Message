@@ -5,8 +5,8 @@ module.exports = {
         logger: 'message',
         client: {
             host: 'localhost',
-            user: 'queue-client',
-            pass: 'ChangeMe!!!',
+            user: 'guest',
+            pass: 'guest',
             heartbeat: 30
         },
         channels: {

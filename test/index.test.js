@@ -33,12 +33,13 @@ describe('Message', () => {
         });
 
         it('should make all other instances available on the mq property', done => {
-            MQ.configure({ test: { client: { user: 'guest', pass: 'guest' }}}, true);
+            MQ.configure({ test: { client: { heartbeat: 10 }}}, true);
             let req = {};
             let res = {};
             MQ.middleware()(req, res, () => {
                 expect(req.mq.name).to.equal('test');
                 expect(req.mq.test.name).to.equal('test');
+                expect(req.mq.config.client.heartbeat).to.equal(10);
                 done();
             });
         });
