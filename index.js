@@ -1,4 +1,5 @@
-const config = require('cheevr-config').addDefaultConfig(__dirname, 'config');
+const _ = require('lodash');
+const globalConfig = require('cheevr-config').addDefaultConfig(__dirname, 'config');
 const EventEmitter = require('events').EventEmitter;
 
 /**
@@ -53,18 +54,29 @@ const EventEmitter = require('events').EventEmitter;
 class Manager extends EventEmitter {
     constructor() {
         super();
+        this.reset();
+    }
+
+    /**
+     * Resets and removes all instances. Allows to optionally pass in a configuration.
+     * @param {Object<string, InstanceConfig>} [config] A map with names pointing to instance configuration
+     * @returns {Instance.Manager}
+     */
+    reset(config = _.cloneDeep(globalConfig.queue)) {
         this._instances = {};
-        this._config = config.queue;
-        this.configure(config.queue);
+        config && this.configure(config);
+        return this;
     }
 
     /**
      * Set the configuration for the message queues manually.
      * @param {Object<string, InstanceConfig>} config   A map with names pointing to instance configuration
      * @param {boolean} [merge=false]                   Whether to merge the given config with the current one.
+     * @returns {Instance.Manager}
      */
     configure(config, merge) {
         merge ? Object.assign(this._config, config) : this._config = config;
+        return this;
     }
 
     /**
@@ -73,14 +85,18 @@ class Manager extends EventEmitter {
      * @returns {Instance}
      */
     instance(name = '_default_') {
-        let opts = config.queue[name];
+        let opts = this._config[name];
         if (!opts) {
             throw new Error('Missing configuration for message queue server named ' + name);
         }
-        name != '_default_' && (opts = Object.assign({}, config.queue._default_, opts || {}));
+        name != '_default_' && (opts = _.defaultsDeep({}, opts, this._config._default_));
         this._instances[name] = this._instances[name] || new (require('./' + opts.type))(name, opts);
         this._instances[name].on('error', err => this.emit('error', err));
         return this._instances[name];
+    }
+
+    _assignDefault(opts) {
+
     }
 
     /**
@@ -114,13 +130,13 @@ class Manager extends EventEmitter {
      */
     middleware() {
         let defaultInstance;
-        for (let instanceName in config.queue) {
-            if (instanceName != '_default_' && (config.queue[instanceName.default] || !defaultInstance)) {
+        for (let instanceName in this._config) {
+            if (instanceName != '_default_' && (this._config[instanceName].default || !defaultInstance)) {
                 defaultInstance = this.instance(instanceName);
             }
         }
         if (defaultInstance) {
-            for (let instanceName in config.queue) {
+            for (let instanceName in this._config) {
                 defaultInstance[instanceName] = this.instance(instanceName)
             }
         }
@@ -154,7 +170,7 @@ class Manager extends EventEmitter {
      * @param {function} cb                 Callback that will receive err/response
      */
     receive(queue, instance, noAck, cb) {
-        if (typeof instance != 'string') {
+        if (!(instance instanceof String)) {
             cb = noAck;
             noAck = instance;
             instance = '_default_';
@@ -174,7 +190,7 @@ class Manager extends EventEmitter {
      * @param {function} cb                 Callback that will receive err/response
      */
     listen(queue, instance, noAck, cb) {
-        if (typeof instance != 'string') {
+        if (!(instance instanceof String)) {
             cb = noAck;
             noAck = instance;
             instance = '_default_';

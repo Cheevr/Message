@@ -39,6 +39,7 @@
     "async": "^2",
     "cheevr-config": "https://github.com/Cheevr/Config.git",
     "cheevr-logging": "https://github.com/Cheevr/Logging.git",
+    "lodash": "^4",
     "shortid": "^2"
   }
 }
