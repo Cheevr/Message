@@ -23,8 +23,7 @@
     "test-travis": "istanbul cover _mocha --report lcovonly -- -R spec --recursive"
   },
   "peerDependencies": {
-    "cheevr-database": "https://github.com/Cheevr/Database.git",
-    "aws-sdk": "^2"
+    "cheevr-database": "https://github.com/Cheevr/Database.git"
   },
   "devDependencies": {
     "chai": "^3",
