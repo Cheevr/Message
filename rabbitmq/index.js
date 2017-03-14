@@ -1,4 +1,4 @@
-const amqp = require('amqplib');
+const amqp = require('amqplib/callback_api');
 const Channel = require('./channel');
 const EventEmitter = require('events').EventEmitter;
 const Logging = require('cheevr-logging');
@@ -32,6 +32,7 @@ const Logging = require('cheevr-logging');
 
 
 /**
+ * TODO close open client connections on exit for graceful shutdown
  * @fires Instance#connected
  * @fires Instance#disconnected
  * @fires Instance#interrupted

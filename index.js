@@ -95,10 +95,6 @@ class Manager extends EventEmitter {
         return this._instances[name];
     }
 
-    _assignDefault(opts) {
-
-    }
-
     /**
      * Returns a channel object that you can send, receive or listen for messages on.
      * @param {string} name                     The name of the channel you want to operate on
@@ -148,58 +144,64 @@ class Manager extends EventEmitter {
 
     /**
      * Send a message to a queue on the default server instance.
-     * @param {string} queue              The name of the queue to operate on
+     * @param {string} queue                The name of the queue to operate on
      * @param {string} [instance=_default_] Server instance name to look for queue
      * @param {Object|String|Buffer} msg    The message to put on the queue
      * @param {function} cb                 Callback that will receive err/response
      */
     send(queue, instance, msg, cb) {
-        if (instance instanceof String) {
+        if (!(instance instanceof String)) {
             cb = msg;
             msg = instance;
             instance = '_default_';
         }
-        this.queue(queue, instance).send(msg, cb);
+        return this.queue(queue, instance).send(msg, cb);
     }
 
     /**
      * Receive a message from a queue on the default server instance.
-     * @param {string} queue              The name of the queue to operate on
+     * @param {string} queue                The name of the queue to operate on
      * @param {string} [instance=_default_] Server instance name to look for queue
-     * @param {boolean} [noAck=false]       Whether the server should expect an acknowledgement from the client or not
      * @param {function} cb                 Callback that will receive err/response
      */
-    receive(queue, instance, noAck, cb) {
+    receive(queue, instance, cb) {
         if (!(instance instanceof String)) {
-            cb = noAck;
-            noAck = instance;
+            cb = instance;
             instance = '_default_';
         }
-        if (typeof noAck != 'boolean') {
-            cb = noAck;
-            noAck = false;
-        }
-        this.queue(queue, instance).receive(noAck, cb);
+        return this.queue(queue, instance).receive(cb);
     }
 
     /**
      * Listen for messages on a queue on the default server instance.
-     * @param {string} queue              The name of the queue to operate on
+     * @param {string} queue                The name of the queue to operate on
      * @param {string} [instance=_default_] Server instance name to look for queue
-     * @param {boolean} [noAck=false]       Whether the server should expect an acknowledgement from the client or not
      * @param {function} cb                 Callback that will receive err/response
+     * @returns {string} The consumer id that can be used to unlisten.
      */
-    listen(queue, instance, noAck, cb) {
+    listen(queue, instance, cb) {
         if (!(instance instanceof String)) {
-            cb = noAck;
-            noAck = instance;
+            cb = instance;
             instance = '_default_';
         }
-        if (typeof noAck != 'boolean') {
-            cb = noAck;
-            noAck = false;
+        return this.queue(queue, instance).listen(cb);
+    }
+
+    /**
+     * Remove a listener on a queue on the default service instance.
+     * @param {string} queue                The name of the queue to operate on
+     * @param {string} [instance=_default_] Server instance name to look for queue
+     * @param {string} id                   The consumer id of the listener
+     * @param {function} cb                 Callback that will receive err/response
+     * @returns {*}
+     */
+    unlisten(queue, instance, id, cb) {
+        if (!(instance instanceof String)) {
+            cb = id;
+            id = instance;
+            instance = '_default_';
         }
-        this.queue(queue, instance).listen(noAck, cb);
+        return this.queue(queue, instance).unlisten(id, cb);
     }
 }
 

@@ -1,8 +1,17 @@
 /* globals describe, it, after, before, afterEach, beforeEach */
 const expect = require('chai').expect;
+const Logging = require('cheevr-logging');
 
 
 const MQ = require('../');
+
+Logging.message = {
+    error: () => {},
+    warn: () => {},
+    info: () => {},
+    debug: () => {},
+    trace: () => {}
+};
 
 describe('Message', () => {
     describe('Factory', () => {
@@ -56,6 +65,68 @@ describe('Message', () => {
                 expect(req.mq.test.name).to.equal('test');
                 expect(req.mq.test2.name).to.equal('test2');
                 done();
+            });
+        });
+    });
+
+    describe('RabbitMQ', () => {
+        beforeEach(() => MQ.reset());
+
+        it('should send and receive a single message with manual ack', done => {
+            MQ.instance().on('connected', () => {
+                MQ.send('test', { a: 'message' }, (err, id) => {
+                    MQ.receive('test', (err, msg, ack) => {
+                        expect(msg).to.deep.equal({a: 'message'});
+                        ack();
+                        done();
+                    }, id);
+                });
+            });
+        });
+
+        it('should send and receive a single message with auto ack', done => {
+            MQ.instance().on('connected', () => {
+                MQ.send('test', { a: 'message' }, (err, id) => {
+                    MQ.receive('test', (err, msg) => {
+                        expect(msg).to.deep.equal({a: 'message'});
+                        done();
+                    }, id);
+                });
+            });
+        });
+
+        it('should listen for multiple messages with manual ack', done => {
+            let first = false;
+            MQ.instance().on('connected', () => {
+                MQ.send('test', { a: 'message1' });
+                MQ.send('test', { a: 'message2' });
+                let id = MQ.listen('test', (err, msg, ack) => {
+                    ack();
+                    if (!first) {
+                        first = true;
+                        expect(msg).to.deep.equal({a: 'message1'});
+                    } else {
+                        expect(msg).to.deep.equal({a: 'message2'});
+                        MQ.unlisten('test', id, done);
+                    }
+                });
+            });
+        });
+
+        it('should listen for multiple messages with auto ack', done => {
+            let first = false;
+            MQ.instance().on('connected', () => {
+                MQ.send('test', { a: 'message1' });
+                MQ.send('test', { a: 'message2' });
+                let id = MQ.listen('test', (err, msg) => {
+                    if (!first) {
+                        first = true;
+                        expect(msg).to.deep.equal({a: 'message1'});
+                    } else {
+                        expect(msg).to.deep.equal({a: 'message2'});
+                        MQ.unlisten('test', id, done);
+                    }
+                });
             });
         });
     });

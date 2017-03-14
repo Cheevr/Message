@@ -14,6 +14,7 @@ class MemoryCache {
         if (!payload.id) {
             throw new Error('Unable to cache message queue payload because of missing id');
         }
+        this._queues[queue] = this._queues[queue] || {}
         this._queues[queue][payload.id] = payload;
         cb && cb();
     }

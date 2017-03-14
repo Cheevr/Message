@@ -10,6 +10,7 @@ class Channel extends EventEmitter {
      * @param {RabbitChannelConfig} config  The configuration for this channel
      */
     constructor(name, host, config) {
+        super();
         this._name = name;
         this._config = config;
         this._host = host;
@@ -40,7 +41,7 @@ class Channel extends EventEmitter {
             this._host.once('connected', this._setUp.bind(this));
             return cb && cb(new Error('Connection is not available yet, channel is not connected'));
         }
-        connection.createChannel().then((channel, err) => {
+        connection.createChannel((err, channel) => {
             if (err) {
                 return cb && cb(err);
             }
@@ -101,12 +102,12 @@ class Channel extends EventEmitter {
 
     /**
      * Register a listener for a queue.
-     * @param {boolean} [noAck=false]   Flag this message as one that doesn't need a confirmation upon completion.
-     * @param {Callback} [cb]
-     * @param {string} [id]             The consumer id for this listener
+     * @param {Callback} [cb]   The callback function. If the function has 3 parameters the 3rd is a manual callback to
+     *                          ack or noAck a message
+     * @param {string} [id]     The consumer id for this listener
      */
-    listen(noAck, cb = noAck, id = shortId.generate()) {
-        typeof noAck == 'function' && (noAck = false);
+    listen(cb, id = shortId.generate()) {
+        let noAck = !cb || cb.length < 3;
         this._setUp(err => {
             if (err) {
                 return cb && cb(err);
@@ -118,26 +119,39 @@ class Channel extends EventEmitter {
                 });
             }, { consumerTag:id, noAck });
         });
+        return id;
+    }
+
+    /**
+     * Removes a listener with the given id from a queue.
+     * @param id
+     * @param cb
+     */
+    unlisten(id, cb) {
+        this._channel.cancel(id, cb);
     }
 
     /**
      * Receive a single message on the given queue.
-     * @param {boolean} [noAck=false]   Flag this message as one that doesn't need a confirmation upon completion.
-     * @param {Callback} [cb]
-     * @param {string} [id]             The consumer id for this receiver
+     * @param {Callback} [cb]   The callback function. If the function has 3 parameters the 3rd is a manual callback to
+     *                          ack or noAck a message
+     * @param {string} [id]     The consumer id for this receiver
      */
-    receive(noAck, cb = noAck, id = shortId.generate()) {
-        typeof noAck == 'function' && (noAck = false);
+    receive(cb, id = shortId.generate()) {
+        let noAck = !cb || cb.length < 3;
         this._setUp(err => {
             if (err) {
                 return cb && cb(err);
             }
             this._cache.store(this.name, { id, receiver:cb, noAck });
-            this._channel.consume(name, msg => {
+            this._channel.consume(this.name, msg => {
                 this._cache.remove(this.name, id);
-                this._channel.cancel(id);
+                noAck && this._channel.cancel(id);
                 cb && cb(null, JSON.parse(msg.content.toString('utf8')), ( ack = true ) => {
-                    noAck || (ack ? this._channel.ack(msg) : this._channel.nack(msg));
+                    if (!noAck) {
+                        ack ? this._channel.ack(msg) : this._channel.nack(msg);
+                        this._channel.cancel(id);
+                    }
                 });
             }, { consumerTag: id, noAck });
         });
