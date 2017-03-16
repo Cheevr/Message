@@ -1,4 +1,6 @@
+const _ = require('lodash');
 const Cache = require('../cache');
+const config = require('cheevr-config');
 const EventEmitter = require('events').EventEmitter;
 const shortId = require('shortid');
 
@@ -7,15 +9,15 @@ class Channel extends EventEmitter {
     /**
      * @param {string} name                 The name of this channel
      * @param {Instance} host               The host instance in case we need to access host operations
-     * @param {RabbitChannelConfig} config  The configuration for this channel
+     * @param {RabbitChannelConfig} channelConfig  The configuration for this channel
      */
-    constructor(name, host, config) {
+    constructor(name, host, channelConfig) {
         super();
         this._name = name;
-        this._config = config;
+        this._config = _.defaultsDeep({}, channelConfig, config.defaults.queue.rabbitmq.channel);
         this._host = host;
         this._log = host._log;
-        this._cache = Cache.get(config.cache, this._log);
+        this._cache = Cache.get(this._config.cache, this._log);
         this._host.on('reconnected', () => {
             this._cache.get(this.name, (err, entries) => {
                 err && this._log.error('Unable to restore cached messages for channel %s:', this.name, err);

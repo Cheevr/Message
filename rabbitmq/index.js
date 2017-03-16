@@ -1,5 +1,7 @@
+const _ = require('lodash');
 const amqp = require('amqplib/callback_api');
 const Channel = require('./channel');
+const config = require('cheevr-config');
 const EventEmitter = require('events').EventEmitter;
 const Logging = require('cheevr-logging');
 
@@ -44,15 +46,15 @@ class Instance extends EventEmitter {
     /**
      *
      * @param {string} name
-     * @param {RabbitInstanceConfig} config
+     * @param {RabbitInstanceConfig} instanceConfig
      */
-    constructor(name, config) {
+    constructor(name, instanceConfig) {
         super();
         this._channels = {};
         this._name = name;
-        this._config = config;
-        this._host = config.client.host;
-        this._log = Logging[config.logger];
+        this._config = _.defaultsDeep({}, instanceConfig, config.defaults.queue.rabbitmq.instance);
+        this._host = this._config.client.host;
+        this._log = Logging[this._config.logger];
         this._interrupted = false;
         this.connect();
         this.on('interrupted', () => setTimeout(this.connect.bind(this)), 100);
@@ -117,14 +119,9 @@ class Instance extends EventEmitter {
      * @private
      */
     _setUp() {
-        let defaultConf = this._config.channels._default_;
         if (this._config.channels) {
             for (let name in this._config.channels) {
-                if (name == '_default_') {
-                    continue;
-                }
-                let channelConfig = Object.assign({}, defaultConf, this._config.channels[name]);
-                let channel = this._channels[name] = new Channel(this.name + '-' + name, this, channelConfig);
+                let channel = this._channels[name] = new Channel(this.name + '-' + name, this, this._config.channels[name]);
                 channel.on('error', err => this.emit('error', err, this, channel));
             }
         }
@@ -161,8 +158,7 @@ class Instance extends EventEmitter {
      */
     channel(name) {
         if (!this._channels[name]) {
-            let channelConfig = Object.assign({}, this._config.channels._default_, this._config.channels[name]);
-            let channel = this._channels[name] = new Channel(this.name + '-' + name, this, channelConfig);
+            let channel = this._channels[name] = new Channel(this.name + '-' + name, this, this._config.channels[name]);
             channel.on('error', err => this.emit('error', err, this, channel));
         }
         return this._channels[name];

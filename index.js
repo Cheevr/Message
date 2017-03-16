@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const config = require('cheevr-config');
 const globalConfig = require('cheevr-config').addDefaultConfig(__dirname, 'config');
 const EventEmitter = require('events').EventEmitter;
 
@@ -81,16 +82,16 @@ class Manager extends EventEmitter {
 
     /**
      * Returns the instance object that holds information about all the channels it has.
-     * @param {string} name The name of instance to return.
+     * @param {string} [name=_default_] The name of instance to return.
      * @returns {Instance}
      */
     instance(name = '_default_') {
         let opts = this._config[name];
         if (!opts) {
-            throw new Error('Missing configuration for message queue server named ' + name);
+            opts =  config.defaults.queue[config.defaults.queue.defaultType].instance;
         }
-        name != '_default_' && (opts = _.defaultsDeep({}, opts, this._config._default_));
-        this._instances[name] = this._instances[name] || new (require('./' + opts.type))(name, opts);
+        let type = (opts && opts.type) || config.defaults.queue.defaultType;
+        this._instances[name] = this._instances[name] || new (require('./' + type))(name, opts);
         this._instances[name].on('error', err => this.emit('error', err));
         return this._instances[name];
     }
@@ -101,7 +102,7 @@ class Manager extends EventEmitter {
      * @param {string} [instanceName=_default_] The name name of the message queue instance
      * @returns {Channel}
      */
-    queue(name, instanceName = '_default_') {
+    queue(name, instanceName) {
         return this.instance(instanceName).channel(name);
     }
 
@@ -127,7 +128,7 @@ class Manager extends EventEmitter {
     middleware() {
         let defaultInstance;
         for (let instanceName in this._config) {
-            if (instanceName != '_default_' && (this._config[instanceName].default || !defaultInstance)) {
+            if (this._config[instanceName].default || !defaultInstance) {
                 defaultInstance = this.instance(instanceName);
             }
         }
@@ -153,7 +154,7 @@ class Manager extends EventEmitter {
         if (!(instance instanceof String)) {
             cb = msg;
             msg = instance;
-            instance = '_default_';
+            instance = undefined;
         }
         return this.queue(queue, instance).send(msg, cb);
     }
@@ -167,7 +168,7 @@ class Manager extends EventEmitter {
     receive(queue, instance, cb) {
         if (!(instance instanceof String)) {
             cb = instance;
-            instance = '_default_';
+            instance = undefined;
         }
         return this.queue(queue, instance).receive(cb);
     }
@@ -182,7 +183,7 @@ class Manager extends EventEmitter {
     listen(queue, instance, cb) {
         if (!(instance instanceof String)) {
             cb = instance;
-            instance = '_default_';
+            instance = undefined;
         }
         return this.queue(queue, instance).listen(cb);
     }
@@ -199,7 +200,7 @@ class Manager extends EventEmitter {
         if (!(instance instanceof String)) {
             cb = id;
             id = instance;
-            instance = '_default_';
+            instance = undefined;
         }
         return this.queue(queue, instance).unlisten(id, cb);
     }
