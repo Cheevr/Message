@@ -72,7 +72,7 @@ class Channel extends EventEmitter {
         this._channel.deleteQueue(this.name, err => {
             err && this._log.warn('There was an error trying to delete queue %s', this.name, err);
             this._channel.removeAllListeners();
-            this._cache.clear();
+            this._cache.clear(this._name);
             delete this._channel;
         });
     }
@@ -89,7 +89,7 @@ class Channel extends EventEmitter {
      * @returns {object} The id that was used for this message
      */
     send(msg, cb, id = shortId.generate()) {
-        this._cache.store(this.name, {id, payload:msg, callback:cb});
+        this._cache.store(this.name, id, {payload:msg, callback:cb});
         this._setUp(err => {
             this._cache.remove(this.name, id);
             if (err) {
@@ -114,7 +114,7 @@ class Channel extends EventEmitter {
             if (err) {
                 return cb && cb(err);
             }
-            this._cache.store(this.name, { id, listener: cb, noAck });
+            this._cache.store(this.name, id, { listener: cb, noAck });
             this._channel.consume(this._name, msg => {
                 cb && cb(null, JSON.parse(msg.content.toString('utf8')), ( ack = true ) => {
                     noAck || (ack ? this._channel.ack(msg) : this._channel.nack(msg));
@@ -131,6 +131,7 @@ class Channel extends EventEmitter {
      */
     unlisten(id, cb) {
         this._channel.cancel(id, cb);
+        this._cache.remove(this.name, id);
     }
 
     /**
@@ -145,7 +146,7 @@ class Channel extends EventEmitter {
             if (err) {
                 return cb && cb(err);
             }
-            this._cache.store(this.name, { id, receiver:cb, noAck });
+            this._cache.store(this.name, id, { receiver:cb, noAck });
             this._channel.consume(this.name, msg => {
                 this._cache.remove(this.name, id);
                 noAck && this._channel.cancel(id);

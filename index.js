@@ -6,7 +6,7 @@ const EventEmitter = require('events').EventEmitter;
 /**
  * The standard callback definition that can be used anywhere where standards are followed.
  * @typedef {function} Callback
- * @param {Error|string} [err]  Will contain error information if there's has been one
+ * @param {Error|string|null} [err]  Will contain error information if there's has been one
  * @param {*} [...args]
  */
 

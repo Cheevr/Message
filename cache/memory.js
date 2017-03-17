@@ -5,17 +5,15 @@ class MemoryCache {
 
     /**
      * Stores the payload in cache.
-     * @param {string} queue        The id/name of the queue to cache for
+     * @param {string} queue        The name of the queue to cache for
+     * @param {string} id           The id of the document to store
      * @param {object} payload      The data to cache
      * @param {string} payload.id   The id that is being used to reference the message later on
      * @param {Callback} [cb]       Callback to be notified on async store operations
      */
-    store(queue, payload, cb) {
-        if (!payload.id) {
-            throw new Error('Unable to cache message queue payload because of missing id');
-        }
-        this._queues[queue] = this._queues[queue] || {}
-        this._queues[queue][payload.id] = payload;
+    store(queue, id, payload, cb) {
+        this._queues[queue] = this._queues[queue] || {};
+        this._queues[queue][id] = payload;
         cb && cb();
     }
 
