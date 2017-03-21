@@ -101,12 +101,11 @@ describe('Message', () => {
                 MQ.send('test', { a: 'message1' });
                 MQ.send('test', { a: 'message2' });
                 let id = MQ.listen('test', (err, msg, ack) => {
+                    expect(msg.a).to.be.oneOf(['message1', 'message2']);
                     ack();
                     if (!first) {
                         first = true;
-                        expect(msg).to.deep.equal({a: 'message1'});
                     } else {
-                        expect(msg).to.deep.equal({a: 'message2'});
                         MQ.unlisten('test', id, done);
                     }
                 });
@@ -119,11 +118,10 @@ describe('Message', () => {
                 MQ.send('test', { a: 'message1' });
                 MQ.send('test', { a: 'message2' });
                 let id = MQ.listen('test', (err, msg) => {
+                    expect(msg.a).to.be.oneOf(['message1', 'message2']);
                     if (!first) {
                         first = true;
-                        expect(msg).to.deep.equal({a: 'message1'});
                     } else {
-                        expect(msg).to.deep.equal({a: 'message2'});
                         MQ.unlisten('test', id, done);
                     }
                 });

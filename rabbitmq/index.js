@@ -25,7 +25,7 @@ const Logging = require('cheevr-logging');
 
 /**
  * @typedef {object} RabbitChannelConfig
- * @property {CacheConfig} cache    The configuration object for the cache to use with this channel
+ * @property {string} cache         The name of the cache instance to use for caching purposes
  * @property {object} queue         Options for setting up a queue (for more options see
  *                                  http://www.squaremobius.net/amqp.node/channel_api.html#channel_assertQueue)
  * @property {object} message       Options when sending messages to a queue (for more options see

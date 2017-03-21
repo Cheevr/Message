@@ -14,9 +14,7 @@ module.exports = {
             channels: {}
         },
         channel: {
-            cache: {
-                type: 'memory'
-            },
+            cache: 'messageCache',
             queue: {
                 durable: true,
                 messageTtl: 24 * 60 * 60 * 1000 // 24h
