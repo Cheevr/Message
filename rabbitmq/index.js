@@ -1,9 +1,9 @@
 const _ = require('lodash');
 const amqp = require('amqplib/callback_api');
 const Channel = require('./channel');
-const config = require('cheevr-config');
+const config = require('@cheevr/config');
 const EventEmitter = require('events').EventEmitter;
-const Logging = require('cheevr-logging');
+const Logging = require('@cheevr/logging');
 
 /**
  * @typedef {object} RabbitInstanceConfig

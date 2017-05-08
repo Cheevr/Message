@@ -1,6 +1,6 @@
 const _ = require('lodash');
-const config = require('cheevr-config');
-const globalConfig = require('cheevr-config').addDefaultConfig(__dirname, 'config');
+const config = require('@cheevr/config');
+const globalConfig = require('@cheevr/config').addDefaultConfig(__dirname, 'config');
 const EventEmitter = require('events').EventEmitter;
 
 /**

@@ -1,6 +1,6 @@
 const _ = require('lodash');
-const Cache = require('cheevr-cache');
-const config = require('cheevr-config');
+const Cache = require('@cheevr/cache');
+const config = require('@cheevr/config');
 const EventEmitter = require('events').EventEmitter;
 const shortId = require('shortid');
 

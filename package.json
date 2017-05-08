@@ -1,8 +1,7 @@
 {
-  "name": "cheevr-message",
+  "name": "@cheevr/message",
   "version": "1.1.5",
   "description": "A message queue library",
-  "private": true,
   "main": "index.js",
   "repository": {
     "type": "git",
@@ -23,7 +22,7 @@
     "test-travis": "istanbul cover _mocha --report lcovonly -- -R spec --recursive"
   },
   "peerDependencies": {
-    "cheevr-database": "https://github.com/Cheevr/Database.git"
+    "@cheevr/database": "^1"
   },
   "devDependencies": {
     "chai": "^3",
@@ -35,9 +34,9 @@
   "dependencies": {
     "amqplib": "^0.5",
     "async": "^2",
-    "cheevr-cache": "https://github.com/Cheevr/Cache.git",
-    "cheevr-config": "https://github.com/Cheevr/Config.git",
-    "cheevr-logging": "https://github.com/Cheevr/Logging.git",
+    "@cheevr/cache": "^1",
+    "@cheevr/config": "^1",
+    "@cheevr/logging": "^1",
     "lodash": "^4",
     "shortid": "^2"
   }
