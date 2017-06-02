@@ -1,6 +1,6 @@
 {
   "name": "@cheevr/message",
-  "version": "1.1.5",
+  "version": "1.1.7",
   "description": "A message queue library",
   "main": "index.js",
   "repository": {
@@ -18,8 +18,8 @@
     "url": "https://github.com/Cheevr/Message/issues"
   },
   "scripts": {
-    "test": "istanbul cover _mocha -- --recursive",
-    "test-travis": "istanbul cover _mocha --report lcovonly -- -R spec --recursive"
+    "test": "nyc --reporter=text --reporter=html mocha --recursive",
+    "test-travis": "nyc --reporter=text-lcov mocha --recursive | coveralls"
   },
   "peerDependencies": {
     "@cheevr/database": "^1"
@@ -28,15 +28,15 @@
     "chai": "^3",
     "coveralls": "^2",
     "express": "^4",
-    "istanbul": "^0.4",
-    "mocha": "^3"
+    "mocha": "^3",
+    "nyc": "^11"
   },
   "dependencies": {
-    "amqplib": "^0.5",
-    "async": "^2",
     "@cheevr/cache": "^1",
     "@cheevr/config": "^1",
     "@cheevr/logging": "^1",
+    "amqplib": "^0.5",
+    "async": "^2.4.1",
     "lodash": "^4",
     "shortid": "^2"
   }

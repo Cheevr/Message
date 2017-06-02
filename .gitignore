@@ -5,3 +5,4 @@ logs/
 *.pig
 *.tmp
 coverage/
+.nyc_output/
