@@ -52,6 +52,8 @@ myQ.on('connected', () => {
 
 And this snippet of code will write "Hello World" to the terminal.
 
+For more examples check out the test folder.
+
 
 # Configuration
 
@@ -143,49 +145,132 @@ Specifies whether the message should be returned if there are no bindings for th
 
 ## MQ.reset({Map<string, InstanceConfig>} \[config\])
 
+Allows to reset the entire system and triggers a reload of the configuration. An optional configuration
+map the has the same structure as the document format can be passed in if you want to override specific
+instance configurations.
+Returns as a reference of the MQ instance so that methods can be chained.
+
 ## MQ.configure({Map<string, InstanceConfig>} config, {boolean} \[merge = true\])
+
+If you want to change the configuration for your queues at runtime you can use this method to override
+them. File configs will still be applied as defaults if they are not overridden.
+Returns as a reference of the MQ instance so that methods can be chained.
 
 ## MQ.instance({string} \[name = "_default_"\])
 
+This will return the instance of the queue that you want to operate on. If no name is given a default
+queue is returned that tries to connect to localhost via rabbitmq. You can override the behavior of this
+queue by specifying a queue name "_default_" in your configuration.
+
 ## MQ.queue({string} name, {string} \[instanceName = "_default_"\])
+
+This will return a reference to a named channel/queue on a given instance. If no instanceName is given
+the default queue will be assumed. See below what methods are available on a channel.
 
 ## MQ.ready()
 
+Returns true if all instances and their queues are ready for operation.
+
 ## MQ.middleware()
+
+This method makes it easy to make message queue instances available on request handlers. Every request
+object of a standard handler will have a new ```req.mq``` property. The default instance will have its
+methods available directly on the object, while named instances will be properties on the mq object.
+
+E.g. calling ```req.mq.send('mychannel', 'a message')``` will send a message on the default instance.
+Calling ```req.mq.myinstance.send('myotherchannel', 'a message')``` will send a message on the
+instance called **myinstance**.
 
 ## MQ.send({string} queue, {string} \[instance = "_default_",\], {*} msg, {function} callback)
 
+This will send a message on the given queue for the name instance. If no instance name is given the
+default instance is used.
+
 ## MQ.receive({string} queue, {string} \[instance = "_default_",\], {function} callback)
+
+This will allow you to receive a single message from a given queue for the name of the instance. If no
+instance name is given the default instance is used.
 
 ## MQ.listen({string} queue, {string} \[instance = "_default_",\], {function} callback)
 
+This will allow you to receive all messages from a given queue for the name of the instance. If no
+instance name is given the default instance is used.
+Returns the consumer id that can be used to remove the listener (see next method)
+
 ## MQ.unlisten({string} queue, {string} \[instance = "_default_",\], {string} id, {function} callback)
+
+This will allow you to remove a message listener from a given queue for the name of the instance. If no
+instance name is given the default instance is used. The required id to identify the queue is returned
+from the **listen()** method.
 
 ## <instance>.connect({function} callback)
 
+This will cause the instance to try to connect to the rabbitmq server using the existing configuration.
+Note that this is usually not required for you to do since the module will attempt to connect and
+reconnect in case there are any errors.
+
 ## <instance>.disconnect({function} callback)
 
-## <instance>.connection
+This will allow you to disconnect from a service. You will need to manually reconnect to be able to use
+the instance again.
 
-## <instance>.name
+## <instance>.connection {object}
 
-## <instance>.config
+Getter that returns a reference to the rabbitmq connection. You can use this if you want to perform
+actions on the connection directly. Mostly you will probably not need to access this.
 
-## <instance>.ready
+## <instance>.name {string}
+
+Getter that returns the name of this instance based on the configuration.
+
+## <instance>.config {object}
+
+Getter that returns the current state of the configuration for this instance.
+
+## <instance>.ready {boolean}
+
+Getter that returns true if the instance is ready to be used.
 
 ## <instance>.channel({string} name)
 
+This method will return a reference to a channel with which you can send and receive message (see
+below).
+
 ## <channel>.destroy()
 
-## <channel>.ready
+This method will remove all listeners and close the channel. Once a channel is destroyed it can no
+longer be used.
+
+## <channel>.ready {boolean}
+
+Getter that returns true if the channel is set up and ready to use.
 
 ## <channel>.send({*} msg, {function} \[callback\], {string} \[id\])
 
+This method allows you to send a message to this channel. The method allows you to pass in a custom
+id for the message. If omitted the id will be automatically generated for you. Which ever method you
+use, that's the id that will be returned from this method.
+
 ## <channel>.listen({function} \[callback\], {string} \[id\])
+
+Allows you to set up a listener on this channel. This method will also allow you to specify a specific
+id for this listener that can be used to remove it (see below). If no id is given it will be automatically
+generated for you. In either case the method will return the id used for this listener.
+The callback function receives 3 parameters: an error object, the payload and option ack reference that can
+be called to acknowledge the reception of a message. if the passed in method has only 2 parameters the
+message will automatically be acknowldeged.
 
 ## <channel>.unlisten({string} \[id\], {function} \[callback\])
 
+Using the id received from the **listen()** method, this allows to remove the channel listener.
+
 ## <channel>.receive({function} \[callback\], {string} \[id\])
+
+This method will allow you to receive a single message from the channel. You can optionally pass in an id
+that will be used to identify the consumer. If it is omitted an id will be generated automatically for you.
+The callback function receives 3 parameters: an error object, the payload and option ack reference that can
+be called to acknowledge the reception of a message. if the passed in method has only 2 parameters the
+message will automatically be acknowldeged.
 
 
 # Future Features for Consideration
